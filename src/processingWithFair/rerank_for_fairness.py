@@ -14,9 +14,6 @@ import matplotlib.pyplot as plt
 def rerank_alg(dataDescription, dataset, p_deviation=None, iteration=None, k=100, rev=False):
 
     if 'german' in dataset:
-        # print(dataDescription.orig_data_path)
-        # print(dataDescription.header)
-        # DurationMonth,CreditAmount,score,age25
         data = pd.read_csv(dataDescription.orig_data_path)
         p = []
         NUM_GROUPS = len(pd.unique(data[dataDescription.protected_group]))
@@ -25,7 +22,6 @@ def rerank_alg(dataDescription, dataset, p_deviation=None, iteration=None, k=100
             p.append(proportion)
         print("German Credit p value is: ",p)
         
-        # NUM_GROUPS = len(data.groupby(dataDescription.protected_group).count())
         data.rename(columns = {dataDescription.protected_group:'prot_attr'}, inplace = True)
     
         # for German credit, COMPAS and other such datasests, add query_id as all 1s.
@@ -120,9 +116,6 @@ def rerank_alg(dataDescription, dataset, p_deviation=None, iteration=None, k=100
     for id in final_ranking:
         counter += 1
         final_data.append(id_2_row[id])
-        # # have to do this rescoring for both post- and pre-process.
-        # # new score = 1 - (pred_pos - 1)/NUM_ELEMENTS
-        # final_data[-1][dataDescription.score_attribute] = 1.0 - float(counter-1)/length
         
     final_data = np.asarray(final_data)
     print(final_data.shape)
@@ -140,7 +133,6 @@ def rerank_alg(dataDescription, dataset, p_deviation=None, iteration=None, k=100
 def rerank_fair(dataDescription, dataset, p_deviation=0.0, iteration=None, rev=False):
     temp_header = dataDescription.header.copy()
     data = pd.read_csv(dataDescription.orig_data_path, names=dataDescription.header, header=0)
-    # data = pd.read_csv(dataDescription.orig_data_path, names=dataDescription.header, header=0)
     data['uuid'] = 'empty'
     
     
@@ -180,7 +172,6 @@ def rerank_fair(dataDescription, dataset, p_deviation=0.0, iteration=None, rev=F
     data_query = data.query("query_id==" + str(query))
     data_query, protected, nonProtected = create(data_query, dataDescription)
     # protected attribute value is always 1
-    # p = (len(data_query.query(dataDescription.protected_attribute + "==1")) / len(data_query) - p_deviation)
     
     p = float(len(data_query.query(dataDescription.protected_group + "==1")) / len(data_query) )
     p += p_deviation
@@ -188,14 +179,14 @@ def rerank_fair(dataDescription, dataset, p_deviation=0.0, iteration=None, rev=F
     
     p = max(p, 0.01)
     print("lower bound for the protected group elements: ", p)
+
+    # the value of k does not matter much for FA*IR, except for running time. Hence using the whole length of the ranking
     fairRanking, _ = fair.fairRanking(data_query.shape[0], protected, nonProtected, p, dataDescription.alpha)
     
-    # fairRanking = setNewQualifications(fairRanking)
-
+    
     reranked_features = pd.DataFrame(columns=data_query[data_query.uuid == fairRanking[0].uuid].columns) 
     for candidate in fairRanking:
-        # row = data_query.loc[data_query[data_query.uuid == candidate.uuid]
-        row = data_query.loc[data_query['uuid'] == candidate.uuid]#.to_numpy()[0]
+        row = data_query.loc[data_query['uuid'] == candidate.uuid]
         reranked_features = reranked_features.append(row)
     
     
