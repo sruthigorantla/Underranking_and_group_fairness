@@ -18,10 +18,13 @@ class Postprocessing_Evaluator():
         if not os.path.exists(resultDir):
             os.makedirs(resultDir)
         self.__dataset = dataset
-        self.__k_for_evaluation = start + consecutive - 1
+        if topk is None:
+            self.__k_for_evaluation = start + consecutive - 1
+        else:
+            self.__k_for_evaluation = topk
         self.rev = rev
         self.__block = consecutive
-        if self.__block is not None:
+        if consecutive is not None:
             self.BLOCK_SIZE = consecutive
         if 'german' in dataset:
             self.__prot_attr_name = self.__dataset.split('_')[1]
