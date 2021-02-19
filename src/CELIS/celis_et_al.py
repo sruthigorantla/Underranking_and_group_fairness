@@ -59,13 +59,8 @@ class ConstrainedDP:
 		assert sum(W[0,:]) == 0, "Ensure that W is created as 1-based indexing"
 
 	def get_bounds(self, delta):
-		# print(delta)
 		# # Generating L_k and U_k vectors
 		L_k, U_k = {}, {}
-		# ALPHAS = [1, 1]
-		# BETAS = [0, self.proportions[1] + delta]
-		# # B = math.floor(max((1+self.p/(1.0-sum(BETAS))), (1+self.p/(sum(ALPHAS) - 1.0)), (1+2/(ALPHAS[1] - BETAS[1]))) )
-		# B = 20
 		for k in range(self.N):
 			if self.flag == 1:
 				## lower bounds
@@ -96,9 +91,6 @@ class ConstrainedDP:
 		# Assign a random type for each item 
 		self.types = types = []
 		for idx in range(self.M):
-			# Sample a random property for i^th item
-			# c_type = random.randint(0, self.p-1)
-			# one_hot = [0]*self.p
 			c_type = id_2_group['id-'+str(idx+1)]
 
 			one_hot = [0]*self.p
@@ -117,7 +109,7 @@ class ConstrainedDP:
 	def initialize_dp(self):
 
 		dimensions = [self.N+1]*self.q
-		DP = np.zeros(dimensions, dtype=np.ubyte)
+		DP = np.zeros(dimensions)
 
 		# Fill all entries by infinite
 		DP.fill(-np.inf)
@@ -125,7 +117,7 @@ class ConstrainedDP:
 		# set DP[0,0,...,0] = 0
 		indices = tuple(0 for _ in range(self.q))
 		DP[indices] = 0
-		
+
 		return DP
 
 	def fairness_check(self, candidate):
@@ -137,8 +129,6 @@ class ConstrainedDP:
 		v = np.array([0.0]*self.p)
 		for s_i, v_i in zip(candidate,self.unique_types):
 			v += s_i*np.array(v_i)
-
-		# print(v, self.LB[prefix_len], self.UB[prefix_len])
 
 		# Fairness checks for current prefix_len
 		if False in (self.LB[prefix_len]<=v):
@@ -169,12 +159,11 @@ class ConstrainedDP:
 
 
 		solution = {}
-		
+
 		# is_infeasible = False
 		# Loop over increasing k ranks
 		for k in range(1, self.N+1):
-			sys.stdout.flush()
-			
+
 			# Iterate over all valid tuples with sum = k
 			for candidate in tuples:
 
@@ -185,7 +174,8 @@ class ConstrainedDP:
 
 				# First need to ensure the current candidate is satisfying fairness bounds
 				if (self.fairness_check(candidate)):
-				
+
+
 					# Check for all types
 					for l in range(self.q):
 						prev_candidate = list(candidate)
@@ -197,17 +187,18 @@ class ConstrainedDP:
 							s_l = list(candidate)[l]
 							assert s_l > 0
 							item_to_consider = self.item_map[self.unique_types[l]][s_l-1]
+
 							# Tracking which item is placed at k^{th} rank and updating the DP table:
 							if (self.DP[prev_candidate] + self.W[item_to_consider,k]) >= self.DP[candidate]:
 								solution[candidate] = (item_to_consider, prev_candidate)
 								self.DP[candidate] = self.DP[prev_candidate] + self.W[item_to_consider,k]
-								# if k == 100 or k == 200:
-								# 	print(k, self.DP[candidate], candidate)
+		
 		# Do backtracking
-
 
 		# First iterate overall all valid candidates of rank N and see which one has highest DP value. 
 		# Then bactrack from it
+
+
 		max_N = -np.inf
 		candidate_N = None
 		for candidate in tuples:
@@ -225,29 +216,11 @@ class ConstrainedDP:
 			while sum(back_pointer_candidate)>0:
 				final_ranking.append(solution[back_pointer_candidate][0])
 				back_pointer_candidate = solution[back_pointer_candidate][1]
-		
-		assert len(final_ranking) == self.N, "Something wrong"
 
+		assert len(final_ranking) == self.N, "Something wrong"
 		
 		final_indices = []
 		for i in final_ranking[::-1]:
 			final_indices.append("id-"+str(i))
 		return final_indices
 
-
-
-if __name__ == "__main__":
-
-
-	M = 50 # No. of items
-	N = 10 # No. of ranks
-	p = 2  # No. of properties (e.g. p = 3 might mean {male, female, others})
-	# Note q ,i.e. no. of uniquw types get automatically calculated in the class. Also, in this code, q turns out to be = p
-
-	solver = ConstrainedDP(M=M, N=N, p=p)
-	final_rank, is_infeasible = solver.run_DP()
-
-	if not is_infeasible:
-		print(final_rank)
-	else:
-		print("Infeasible")
