@@ -1,5 +1,5 @@
 # On the Problem of Underranking in Group-Fair Ranking.
-This repository consists of code and datasets for our paper. We extend the code of [FA\*IR](https://github.com/fair-search) and implement the DP algorithm in [Celis et al. - Ranking with Fairness Constraints](https://arxiv.org/pdf/1704.06840.pdf), to compare our work with these algorithms as baselines. 
+This repository consists of code and datasets for our [paper](https://arxiv.org/abs/2010.06986). We extend the code of [FA\*IR](https://github.com/fair-search) and implement the DP algorithm in [Celis et al. - Ranking with Fairness Constraints](https://arxiv.org/pdf/1704.06840.pdf), to compare our work with these algorithms as baselines. 
 
 
 ## Requirements
