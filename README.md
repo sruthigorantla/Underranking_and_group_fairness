@@ -15,7 +15,7 @@ The root directory contains the following bash-script for re-ranking with ALG an
 
 #### To run the experiments
 
-``python3 main.py --postprocess <dataset> <method> --k <top k ranks> --rev_flag <True/False> --multi_group <True/False>`` re-ranks the true ranking based on the method (ALG/FAIR/CELIS) and writes the re-ranked data in the folder ``data/<dataset>/..._<experiment>.txt``. If ``rev_flag`` is set, the true ranking is based on the negative scores (or relavance). The flag ``multi_group`` is set for the experiments on the German Credit dataset with more than 2 groups.
+``python3 main.py --postprocess <dataset> <method> --k <top k ranks> --rev_flag <True/False> --multi_group <True/False>`` re-ranks the true ranking based on the method (ALG/FAIR/CELIS) and writes the re-ranked data in the folder ``data/<dataset>/..._<experiment>.txt``. If ``rev_flag`` is set the true ranking is reversed first and then postprocessing is applied. The flag ``multi_group`` is set for the experiments on the German Credit dataset with more than 2 groups.
 
 Uncomment the experiment required and use ``./postprocess.sh``
  
